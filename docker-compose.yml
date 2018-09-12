@@ -1,0 +1,55 @@
+mongo:
+  image: mongo:3.4
+  command: --nojournal
+orion:
+  image: fiware/orion
+  links:
+    - mongo
+  expose:
+    - "1026"
+  ports:
+    - "1026:1026"
+  command: -dbhost mongo
+
+mysql:
+  image: mysql:5.5
+  hostname: mysql
+  container_name: mysql
+  expose:
+    - "3306"
+  ports:
+    - "3306:3306"
+  environment:
+    - MYSQL_ROOT_PASSWORD=mysql
+
+cygnus:
+  image: fiware/cygnus-ngsi:develop
+  hostname: cygnus
+  container_name: cygnus
+  links:
+      - orion
+      - mysql:iot-mysql
+  expose:
+      - "5050"
+  ports:
+    - "5050:5050"
+  environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER = root
+      - MYSQL_PASSWORD=mysql
+      - CYGNUS_MYSQL_USER=root
+      - CYGNUS_MYSQL_PASS=mysql
+      
+grafana: 
+  image: grafana/grafana
+  hostname: grafana
+  container_name: grafana
+  ports:
+    - "3000:3000"
+  links:
+    - mysql
+  #volumes:
+    # Data persistency
+    # sudo mkdir -p /srv/docker/grafana/data; chown 472:472 /srv/docker/grafana/data
+    #- /srv/docker/grafana/data:/var/lib/grafana
